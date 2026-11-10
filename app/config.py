@@ -6,7 +6,7 @@ import shutil
 
 APP_NAME = 'icourse163-downloader'
 APP_TITLE = '中国大学MOOC 免费公开课下载器'
-APP_VERSION = '2.0.2'
+APP_VERSION = '2.0.3-local.3'
 
 USER_AGENT = (
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '

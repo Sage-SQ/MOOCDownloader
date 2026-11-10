@@ -5,10 +5,10 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEST = ROOT / 'publish'
+DEST = ROOT / 'publish' / '2.0.3-local.3'
 SOURCE = DEST / 'source' / 'MOOCDownloader'
 ATTACHMENTS = DEST / 'release'
-VERSION = '2.0.2'
+VERSION = '2.0.3-local.3'
 
 
 def main():
@@ -19,9 +19,11 @@ def main():
         'main.py', 'run.pyw', 'build.bat', 'mooc.spec', 'requirements.txt', 'requirements-build.txt',
         'bin/README.md', 'docs/BUILDING.md', 'docs/RELEASE_2.0.md',
         'docs/RELEASE_2.0.1.md', 'docs/RELEASE_2.0.2.md',
+        'docs/RELEASE_2.0.3-local.1.md', 'docs/RELEASE_2.0.3-local.2.md', 'docs/RELEASE_2.0.3-local.3.md',
         'tools/build_assets.py', 'tools/prepare_manual_release.py',
         'tests/test_v2.py', 'tests/task_removal_v2.py', 'tests/ui_v2.py', 'tests/layout_v2.py',
         'tests/packaged_v2.py', 'tests/verify_installer.ps1', 'tests/live_v2.py', 'tests/live_handouts.py',
+        'tests/login_regression.py', 'tests/webview_cookie_transfer.py', 'tests/encrypted_hls.py',
     )]
     for folder in ('app', 'assets', 'installer', 'licenses'):
         files += [p for p in (ROOT / folder).rglob('*')
@@ -40,7 +42,7 @@ def main():
                 bundle.write(path, Path('MOOCDownloader') / path.relative_to(SOURCE))
     ATTACHMENTS.mkdir(parents=True)
     installer = ROOT / 'release' / ('MOOCDownloader-Setup-' + VERSION + '-x64.exe')
-    for path in (installer, ROOT / 'release/SHA256SUMS.txt'):
+    for path in (installer, ROOT / 'release/SHA256SUMS.txt', ROOT / 'release/VERIFICATION.json'):
         shutil.copy2(path, ATTACHMENTS / path.name)
     shutil.copy2(ROOT / 'release/RELEASE_NOTES.md', DEST / 'RELEASE_NOTES.md')
     digest = hashlib.sha256(installer.read_bytes()).hexdigest()

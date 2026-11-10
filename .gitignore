@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.tools/
+_test_tmp/
+build/
+dist/
+release/
+publish/
+bin/*.exe
+*.log
+
+# Local accounts and login-worker transport must never be published.
+account.json
+cookies.json
+login-result*.json

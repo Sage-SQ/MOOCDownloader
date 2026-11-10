@@ -1,0 +1,222 @@
+{
+  "checked_at": "2026-11-09T22:48:03.833141+08:00",
+  "git_commit": "62221df",
+  "release": "v2.0.2",
+  "mode": "anonymous",
+  "downloads_performed": false,
+  "target": {
+    "url": "https://www.icourse163.org/course/SHUFE-1486311164",
+    "course_name": "环境与资源保护法",
+    "term_id": 1488199471,
+    "chapters": 19,
+    "video_count": 109,
+    "document_count": 43,
+    "samples": [
+      {
+        "index": 1,
+        "unit_id": 1321953937,
+        "content_id": 1231869212,
+        "chapter": "第一章 环境法导论",
+        "name": "视频1",
+        "token_result_code": 0,
+        "token_video_status": 0,
+        "signature_present": true,
+        "vod_code": 0,
+        "variants": [
+          {
+            "quality": 1,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          },
+          {
+            "quality": 2,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          },
+          {
+            "quality": 3,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          }
+        ],
+        "blocked_by_v202": true
+      },
+      {
+        "index": 55,
+        "unit_id": 1322048549,
+        "content_id": 1231870179,
+        "chapter": "第十章 绿色低碳发展法",
+        "name": "视频1",
+        "token_result_code": 0,
+        "token_video_status": 0,
+        "signature_present": true,
+        "vod_code": 0,
+        "variants": [
+          {
+            "quality": 1,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          },
+          {
+            "quality": 2,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          },
+          {
+            "quality": 3,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          }
+        ],
+        "blocked_by_v202": true
+      },
+      {
+        "index": 109,
+        "unit_id": 1322043140,
+        "content_id": 1231870246,
+        "chapter": "第十六章 中国的全球环境治理",
+        "name": "视频4",
+        "token_result_code": 0,
+        "token_video_status": 0,
+        "signature_present": true,
+        "vod_code": 0,
+        "variants": [
+          {
+            "quality": 1,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          },
+          {
+            "quality": 2,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          },
+          {
+            "quality": 3,
+            "format": "hls",
+            "encrypted": true,
+            "secondary_encrypt": true,
+            "key_present": true
+          }
+        ],
+        "blocked_by_v202": true
+      }
+    ],
+    "chargable": "false",
+    "price": "0",
+    "originalPrice": "0"
+  },
+  "control": {
+    "url": "https://www.icourse163.org/course/NJU-1001752349",
+    "course_name": "普通天文学",
+    "term_id": 1476740549,
+    "chapters": 11,
+    "video_count": 43,
+    "document_count": 43,
+    "samples": [
+      {
+        "index": 1,
+        "unit_id": 1308050816,
+        "content_id": 1007176290,
+        "chapter": "第一单元 引言与恒星世界（1）",
+        "name": "什么是天体物理学？",
+        "token_result_code": 0,
+        "token_video_status": 0,
+        "signature_present": true,
+        "vod_code": 0,
+        "variants": [
+          {
+            "quality": 1,
+            "format": "mp4",
+            "encrypted": false,
+            "secondary_encrypt": false,
+            "key_present": false
+          },
+          {
+            "quality": 2,
+            "format": "mp4",
+            "encrypted": false,
+            "secondary_encrypt": false,
+            "key_present": false
+          },
+          {
+            "quality": 3,
+            "format": "mp4",
+            "encrypted": false,
+            "secondary_encrypt": false,
+            "key_present": false
+          },
+          {
+            "quality": 1,
+            "format": "flv",
+            "encrypted": false,
+            "secondary_encrypt": false,
+            "key_present": false
+          },
+          {
+            "quality": 2,
+            "format": "flv",
+            "encrypted": false,
+            "secondary_encrypt": false,
+            "key_present": false
+          },
+          {
+            "quality": 3,
+            "format": "flv",
+            "encrypted": false,
+            "secondary_encrypt": false,
+            "key_present": false
+          }
+        ],
+        "blocked_by_v202": false
+      }
+    ],
+    "chargable": "false",
+    "price": "0",
+    "originalPrice": "0"
+  },
+  "authenticated_homepage_check": {
+    "performed_by": "DOM inspection after manual login",
+    "personal_center_visible": true,
+    "web_user_assignment_present": true,
+    "current_regex_matches": true,
+    "strict_json_parsing_succeeds": false,
+    "unquoted_keys": [
+      "rightsTime",
+      "lastRightsTime",
+      "studyVipRightsTime",
+      "studyVipLastRightsTime",
+      "id",
+      "nickName",
+      "roles",
+      "passport",
+      "personalUrlSuffix",
+      "smallFaceUrl",
+      "largeFaceUrl",
+      "loginId",
+      "loginType",
+      "email",
+      "end_key"
+    ],
+    "synthetic_current_verifier_reproduces_login_expired": true,
+    "synthetic_course_parser_loses_user_id": true,
+    "webview_cookie_transfer_tested": false,
+    "authenticated_video_api_tested": false
+  }
+}

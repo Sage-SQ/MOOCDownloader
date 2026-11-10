@@ -1,9 +1,11 @@
-﻿#define AppVersion "2.0.2"
+﻿#define AppVersion "2.0.3-local.3"
 #define AppName "MOOC 下载器"
 [Setup]
 AppId={{A72F26C5-2A3F-47F9-96B8-B282D2C44F75}
 AppName={#AppName}
 AppVersion={#AppVersion}
+AppVerName=MOOC 下载器 {#AppVersion} 本地修复测试版
+VersionInfoVersion=2.0.3.3
 AppPublisher=MOOC Downloader
 DefaultDirName={localappdata}\Programs\MOOCDownloader
 DefaultGroupName={#AppName}

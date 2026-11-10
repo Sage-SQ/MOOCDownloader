@@ -1,0 +1,54 @@
+[
+  {
+    "mode": "anonymous",
+    "identity_present": false,
+    "variants": [
+      {
+        "format": "hls",
+        "encrypted": true,
+        "secondary_encrypt": true,
+        "key_present": true
+      },
+      {
+        "format": "hls",
+        "encrypted": true,
+        "secondary_encrypt": true,
+        "key_present": true
+      },
+      {
+        "format": "hls",
+        "encrypted": true,
+        "secondary_encrypt": true,
+        "key_present": true
+      }
+    ],
+    "playlist_http_status": 400,
+    "error_type": "HTTPError"
+  },
+  {
+    "mode": "saved_account",
+    "identity_present": true,
+    "variants": [
+      {
+        "format": "hls",
+        "encrypted": true,
+        "secondary_encrypt": true,
+        "key_present": true
+      },
+      {
+        "format": "hls",
+        "encrypted": true,
+        "secondary_encrypt": true,
+        "key_present": true
+      },
+      {
+        "format": "hls",
+        "encrypted": true,
+        "secondary_encrypt": true,
+        "key_present": true
+      }
+    ],
+    "playlist_http_status": 400,
+    "error_type": "HTTPError"
+  }
+]

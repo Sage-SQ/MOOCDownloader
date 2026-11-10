@@ -54,10 +54,12 @@ def main():
         import json
         from pathlib import Path
         from app import config
+        from app.hls_crypto import decrypt_segment
         root.withdraw()
         app = MainWindow(root)
         root.update_idletasks()
         result = {'version': config.APP_VERSION, 'ffmpeg': bool(config.find_ffmpeg()),
+                  'aes128': decrypt_segment(bytes.fromhex('8239f0519afade41250e03df038d1ea0eb6c83bf66b6bb3f295c3904d82bf36f'), bytes(range(16)), 0) == b'packaged AES-128 ready',
                   'pages': list(app.pages), 'tk': root.tk.call('info', 'patchlevel'),
                   'queue_actions': [app.remove_button.cget('text'), app.clear_button.cget('text')]}
         Path(sys.argv[sys.argv.index('--self-test')+1]).write_text(json.dumps(result), encoding='utf-8')

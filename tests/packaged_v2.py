@@ -31,6 +31,7 @@ for name, flag in [('startup', '--self-test'), ('webview', '--webview-self-test'
         value = json.loads(output.read_text(encoding='utf-8'))
         if name == 'startup':
             assert value['version'] == APP_VERSION and value['ffmpeg']
+            assert value.get('aes128'), 'Packaged AES-128 decryption component is missing'
             assert value['pages'] == ['course', 'downloads', 'settings']
             assert value['queue_actions'] == ['移除所选任务', '清空下载记录']
         else:

@@ -17,7 +17,7 @@ DWR(3.x) 的响应文本是 JS 赋值语句序列，例如：
 import json
 import re
 
-__all__ = ['parse_dwr_response', 'DwrParseError']
+__all__ = ['parse_dwr_response', 'parse_js_assignment', 'DwrParseError']
 
 
 class DwrParseError(ValueError):
@@ -74,7 +74,7 @@ class _JsValueParser:
             return self._obj()
         if c == '[':
             return self._arr()
-        if c == '"':
+        if c in ('"', "'"):
             return self._str()
         if c == 'n':
             self.i += 4
@@ -113,7 +113,7 @@ class _JsValueParser:
             if self.s[self.i] == '}':
                 self.i += 1
                 return obj
-            if self.s[self.i] == '"':
+            if self.s[self.i] in ('"', "'"):
                 k = self._str()
             else:
                 m = re.match(r'[A-Za-z_$][\w$]*', self.s[self.i:])
@@ -155,24 +155,38 @@ class _JsValueParser:
                 raise DwrParseError('expected , or ] near %r' % self.s[self.i:self.i + 20])
 
     def _str(self):
-        self.i += 1  # "
+        quote = self.s[self.i]
+        self.i += 1
         out = []
         while self.i < len(self.s):
             c = self.s[self.i]
             if c == '\\':
                 nxt = self.s[self.i + 1] if self.i + 1 < len(self.s) else ''
-                out.append('\\' + nxt)
+                out.append("'" if nxt == "'" else '\\' + nxt)
                 self.i += 2
-            elif c == '"':
+            elif c == quote:
                 self.i += 1
                 try:
                     return json.loads('"' + ''.join(out) + '"')
                 except Exception:
                     return ''.join(out)
             else:
-                out.append(c)
+                out.append('\\"' if c == '"' else c)
                 self.i += 1
         raise DwrParseError('unterminated string')
+
+
+def parse_js_assignment(text, name):
+    """Read one literal assignment without executing JavaScript or consuming later objects."""
+    match = re.search(r'(?<![\w$.])' + re.escape(name) + r'\s*=\s*', text)
+    if not match:
+        return None
+    parser = _JsValueParser(text[match.end():], {})
+    value = parser.parse()
+    rest = parser.s[parser.i:].lstrip()
+    if rest and not rest.startswith((';', '</script>')):
+        raise DwrParseError('expected end of literal assignment')
+    return value
 
 
 def parse_dwr_response(text):

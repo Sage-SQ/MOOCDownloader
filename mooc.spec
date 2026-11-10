@@ -7,7 +7,7 @@ a = Analysis(
            ('LICENSE', '.'), ('THIRD_PARTY_NOTICES.txt', '.'), ('licenses', 'licenses')]
           + collect_data_files('webview'),
     hiddenimports=['webview.platforms.winforms', 'webview.platforms.edgechromium'],
-    excludes=['numpy', 'matplotlib', 'scipy', 'pandas', 'PIL', 'Crypto', 'cryptography', 'OpenSSL',
+    excludes=['numpy', 'matplotlib', 'scipy', 'pandas', 'PIL', 'cryptography', 'OpenSSL',
               'PySide2', 'PySide6', 'PyQt5', 'PyQt6', 'cefpython3', 'gi', 'wx',
               'webview.platforms.qt', 'webview.platforms.gtk', 'webview.platforms.cocoa',
               'webview.platforms.cef', 'webview.platforms.android'],

@@ -1,6 +1,6 @@
 # 本地运行与打包
 
-开发环境：64 位 Windows、Python 3.14、Inno Setup 6。
+开发环境：64 位 Windows、Python 3.11.9（本地修复测试版）、Inno Setup 6。
 
 ```powershell
 python -m pip install -r requirements.txt
@@ -8,11 +8,11 @@ python main.py
 ```
 
 源码仓库不包含 FFmpeg 二进制。可从 https://ffmpeg.org/download.html 选择 Windows 构建，
-将 `ffmpeg.exe` 放入 `bin/`。源码运行也会检查 PATH。当前 2.0.2 完整安装包仍使用
-Gyan FFmpeg 9.0.1 essentials，未采用此前尝试构建的精简组件。
+将 `ffmpeg.exe` 放入 `bin/`。源码运行也会检查 PATH。当前 2.0.3-local.3 本地测试安装包使用
+Gyan FFmpeg 9.0.2 essentials，未采用此前尝试构建的精简组件。
 
 安装 Inno Setup 6 后运行 `build.bat`。脚本安装构建依赖，生成文件夹版程序，
-再生成 `release/MOOCDownloader-Setup-2.0.2-x64.exe`。打包必须存在 `bin/ffmpeg.exe`。
+再生成 `release/MOOCDownloader-Setup-2.0.3-local.3-x64.exe`。打包必须存在 `bin/ffmpeg.exe`。
 
 应用源码采用 MIT。FFmpeg 为独立进程组件，当前构建采用 GPL-3.0-or-later，
 许可证、准确的构建版本与上游源码提交见 `THIRD_PARTY_NOTICES.txt` 和 `licenses/`。

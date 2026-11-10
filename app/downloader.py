@@ -14,7 +14,8 @@ from urllib.parse import urljoin, urlsplit, urlunsplit, parse_qsl, urlencode
 import m3u8
 import requests
 from . import config
-from .icourse_api import PaidCourseError
+from .icourse_api import ResourceUnavailable
+from .hls_crypto import secondary_decrypt, decrypt_segment
 from .transfer_state import read_record, write_record, remove_record, mark_complete
 
 RETRY_TIMES = 3
@@ -27,7 +28,7 @@ class InterruptedError_(Exception):
 
 def identity(url):
     p = urlsplit(url)
-    transient = {'ak', 'token', 'signature', 'expires', 'auth_key', 'wssecret', 'wstime'}
+    transient = {'ak', 'token', 't', 'signature', 'expires', 'auth_key', 'wssecret', 'wstime'}
     query = urlencode(sorted((k, v) for k, v in parse_qsl(p.query, keep_blank_values=True) if k.lower() not in transient))
     return urlunsplit((p.scheme, p.netloc, p.path, query, ''))
 
@@ -126,7 +127,10 @@ class DownloadManager:
             return False
         self.state('downloading')
         if fmt == 'hls':
-            self._download_hls(url, out_path, ffmpeg_path, progress_cb, quality)
+            options = {}
+            if getattr(unit, '_secondary_video_id', None):
+                options['secondary_video_id'] = unit._secondary_video_id
+            self._download_hls(url, out_path, ffmpeg_path, progress_cb, quality, **options)
         else:
             self._download_direct(url, out_path, unit.name, progress_cb)
         return True
@@ -295,16 +299,31 @@ class DownloadManager:
         with self._session().get(url, headers={'Range': 'bytes=%d-' % size}, stream=True, timeout=(10, 15)) as response:
             return response.status_code == 416 and response.headers.get('Content-Range') == 'bytes */%d' % size
 
-    def _download_hls(self, url, out_path, ffmpeg_path, progress_cb=None, quality=None):
+    def _download_hls(self, url, out_path, ffmpeg_path, progress_cb=None, quality=None, secondary_video_id=None):
         if not ffmpeg_path or not Path(ffmpeg_path).is_file():
             raise RuntimeError('缺少视频合并组件，请重新安装完整版本')
         parts = Path(str(out_path)+'.parts')
         parts.mkdir(parents=True, exist_ok=True)
-        playlist, media_url = self._media_playlist(self._fetch(url, is_text=True), url, quality or config.QUALITY_OPTIONS[1])
+        text = self._fetch(url, is_text=True)
+        if secondary_video_id:
+            text = secondary_decrypt(text, secondary_video_id).decode('utf-8')
+        playlist, media_url = self._media_playlist(text, url, quality or config.QUALITY_OPTIONS[1])
         if not playlist.segments or not playlist.is_endlist:
             raise RuntimeError('播放列表为空或属于直播，暂不支持')
-        if any(k and k.method != 'NONE' for k in playlist.keys):
-            raise PaidCourseError('此视频包含加密分片，暂不支持')
+        keys = {}
+        for key in playlist.keys:
+            if not key or key.method == 'NONE':
+                continue
+            if key.method != 'AES-128' or key.keyformat not in (None, 'identity') or not key.uri:
+                raise ResourceUnavailable('此视频使用暂不支持的加密分片格式（当前支持 AES-128）')
+            key_url = self._resolve_uri(key.uri, media_url)
+            if key_url not in keys:
+                data = self._fetch(key_url, desc='播放密钥')
+                if secondary_video_id:
+                    data = secondary_decrypt(data, secondary_video_id, is_key=True)
+                if len(data) != 16:
+                    raise ResourceUnavailable('源站播放密钥格式已变化，请重新解析课程')
+                keys[key_url] = data
         if any(seg.byterange for seg in playlist.segments):
             raise RuntimeError('此视频使用字节范围分片，暂不支持')
         sources = [self._resolve_uri(seg.uri, media_url) for seg in playlist.segments]
@@ -314,6 +333,8 @@ class DownloadManager:
         started, done, count, mappings, seen_maps = time.monotonic(), 0, len(sources), {}, {}
         for seg in playlist.segments:
             if seg.init_section:
+                if seg.key and seg.key.method != 'NONE':
+                    raise ResourceUnavailable('暂不支持加密的初始化片段')
                 if id(seg.init_section) in seen_maps:
                     continue
                 init_url = self._resolve_uri(seg.init_section.uri, media_url)
@@ -336,6 +357,16 @@ class DownloadManager:
                                                         request_slots=self._slots, local_metadata=True)
                 children.append(segment_local.manager)
             segment_local.manager._download_segment(sources[index], str(active / ('seg_%05d.ts' % index)))
+            segment = playlist.segments[index]
+            if segment.key and segment.key.method != 'NONE':
+                key_url = self._resolve_uri(segment.key.uri, media_url)
+                encrypted_path = active / ('seg_%05d.ts' % index)
+                clear = decrypt_segment(encrypted_path.read_bytes(), keys[key_url],
+                                        playlist.media_sequence + index, segment.key.iv)
+                self.check_stop()
+                temporary = active / ('clear_%05d.tmp' % index)
+                temporary.write_bytes(clear)
+                os.replace(temporary, active / ('clear_%05d.ts' % index))
         pool = ThreadPoolExecutor(max_workers=HLS_WORKERS)
         futures = [pool.submit(download_one, i) for i in range(count)]
         try:
@@ -353,7 +384,9 @@ class DownloadManager:
             for child in children:
                 child.close()
         for index, seg in enumerate(playlist.segments):
-            seg.uri = 'seg_%05d.ts' % index
+            seg.uri = ('clear_%05d.ts' if seg.key and seg.key.method != 'NONE' else 'seg_%05d.ts') % index
+            seg.key = None
+        playlist.keys = []
         (active/'local.m3u8').write_text(playlist.dumps(), encoding='utf-8')
         self.check_stop()
         self.state('merging')

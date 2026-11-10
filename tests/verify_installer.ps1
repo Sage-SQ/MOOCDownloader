@@ -12,7 +12,7 @@ if (Test-Path -LiteralPath $moocRegistry) {
         throw 'A real installation already exists; test will not replace it'
     }
 }
-$moocInstaller = Join-Path $moocRoot 'release\MOOCDownloader-Setup-2.0.2-x64.exe'
+$moocInstaller = Join-Path $moocRoot 'release\MOOCDownloader-Setup-2.0.3-local.3-x64.exe'
 $moocArguments = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOICONS','/TASKS=',('/DIR=' + $moocStage),('/LOG=' + (Join-Path $moocTestRoot 'installer-test.log')))
 $moocInstall = Start-Process -FilePath $moocInstaller -ArgumentList $moocArguments -WindowStyle Hidden -PassThru -Wait
 if ($moocInstall.ExitCode -ne 0) { throw "Install failed: $($moocInstall.ExitCode)" }
@@ -27,7 +27,7 @@ $moocResult = Join-Path $moocTestRoot 'installed-self-test.json'
 $moocRun = Start-Process -FilePath $moocProgram -ArgumentList '--self-test',$moocResult -WindowStyle Hidden -PassThru -Wait
 if ($moocRun.ExitCode -ne 0) { throw 'Installed program failed to start' }
 $moocCheck = Get-Content -LiteralPath $moocResult -Raw | ConvertFrom-Json
-if (-not $moocCheck.ffmpeg -or $moocCheck.version -ne '2.0.2') { throw 'Installed program components are incomplete' }
+if (-not $moocCheck.ffmpeg -or $moocCheck.version -ne '2.0.3-local.3') { throw 'Installed program components are incomplete' }
 $moocLicensePaths = @('_internal\LICENSE','_internal\THIRD_PARTY_NOTICES.txt','_internal\licenses\FFmpeg-GPL-3.0.txt','_internal\licenses\Python-LICENSE.txt','_internal\licenses\Tcl-license.terms')
 foreach ($moocLicenseRelative in $moocLicensePaths) {
     $moocLicensePath = Join-Path $moocStage $moocLicenseRelative

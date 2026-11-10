@@ -1,4 +1,4 @@
-﻿MOOC 下载器 2.0.2
+﻿MOOC 下载器 2.0.3-local.3 本地修复测试版
 
 适用于 Windows 10 / Windows 11 64 位系统。
 完整安装包含视频合并组件，无需另行下载 Python 或 FFmpeg。

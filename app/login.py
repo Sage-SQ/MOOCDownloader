@@ -117,7 +117,10 @@ class LoginWindow:
                 for name, value in cookie.items():
                     expires = None
                     try:
-                        if value['expires']:
+                        # WebView2 exports DateTime.MinValue for session cookies.
+                        # parsedate_to_datetime interprets its year 0001 as 2001,
+                        # which would discard a valid HttpOnly login session.
+                        if value['expires'] and '0001' not in value['expires'].split():
                             expires = int(parsedate_to_datetime(value['expires']).timestamp())
                     except (ValueError, TypeError, OverflowError):
                         pass

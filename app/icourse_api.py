@@ -24,9 +24,10 @@ import urllib.parse
 import requests
 
 from . import config
-from .dwr_parser import parse_dwr_response
+from .dwr_parser import parse_dwr_response, parse_js_assignment, DwrParseError
 from .models import Course, Chapter, Lesson, Unit
 from .sign import token_encrypt
+from .hls_crypto import authorize_url
 
 TIMEOUT = (10, 30)
 
@@ -42,7 +43,7 @@ class LoginExpired(ApiError):
 
 
 class PaidCourseError(ApiError):
-    """付费课程 / 加密内容，本工具仅支持免费公开课。"""
+    """资源授权被拒绝，本工具仅支持有访问权限的免费公开课。"""
 
 
 class ResourceUnavailable(ApiError):
@@ -195,15 +196,7 @@ class CourseClient:
         m_tid = re.search(r'termId\s*[=:]\s*"?(\d+)"?', page)
         if m_tid and not term_id:
             term_id = int(m_tid.group(1))
-        self.web_user_id = ''
-        m_user = re.search(r'window\.webUser\s*=\s*({[^;]+})', page)
-        if m_user:
-            try:
-                import json
-                wu = json.loads(m_user.group(1).replace("'", '"'))
-                self.web_user_id = str(wu.get('id', ''))
-            except Exception:
-                pass
+        self.web_user_id = str(self._page_user(page).get('id') or '')
         m_diff = re.search(r'serverTimeDiff\s*[=:]\s*(-?\d+)', page)
         if m_diff:
             self.server_time_diff = int(m_diff.group(1))
@@ -352,7 +345,7 @@ class CourseClient:
 
         免费课无需登录：当携带的登录态失效（例如网页端与应用内同时登录同一
         账号、会话被顶掉）时，自动清空登录 Cookie 降级为游客模式重试一次。
-        付费/加密课程抛 PaidCourseError。
+        未授权课程抛 PaidCourseError，不支持的加密视频抛 ResourceUnavailable。
         """
         try:
             return self._resolve_video(unit, quality_label)
@@ -414,14 +407,31 @@ class CourseClient:
             raise ApiError('视频地址接口失败: %s' % vod.get('message') or vod)
         res = vod.get('result') or {}
         items = res.get('videos') or []
+        def encrypted(item):
+            return bool(item.get('k') or item.get('e') is True or item.get('secondaryEncrypt') is True)
         usable = [it for it in items
-                  if it.get('videoUrl') and it.get('format') in ('hls', 'mp4', 'flv')]
-        if any(it.get('k') or it.get('e') is True for it in items):
-            raise PaidCourseError('当前视频为加密内容（付费课程），本工具仅支持免费公开课', raw=vod)
+                  if it.get('videoUrl') and it.get('format') in ('hls', 'mp4', 'flv')
+                  and not encrypted(it)]
+        unit._secondary_video_id = None
+        if not usable and any(encrypted(it) for it in items):
+            # Prefer clear sources, otherwise adapt the authorized web-player HLS.
+            usable = []
+            for item in items:
+                if item.get('format') != 'hls' or not item.get('k'):
+                    continue
+                try:
+                    usable.append(dict(item, videoUrl=authorize_url(item)))
+                except ValueError:
+                    continue
+            if not usable:
+                raise ResourceUnavailable('源站返回的加密视频协议暂不支持，请重新解析或检查软件更新（加密不代表课程收费）', raw=vod)
         if not usable:
             raise ApiError('未找到可下载的视频地址\n原始返回：%s' % str(vod)[:500])
 
         url, fmt, label = self._pick_quality(usable, quality_label)
+        selected = next(it for it in usable if it['videoUrl'] == url)
+        if selected.get('secondaryEncrypt') is True:
+            unit._secondary_video_id = unit.content_id
         duration = float(res.get('duration') or 0)
         return url, fmt, label, duration
 
@@ -441,6 +451,12 @@ class CourseClient:
                 height = int(match[1])
             if height:
                 return (1 if height <= 480 else 2 if height <= 720 else 3, height, '%dP' % height)
+            try:
+                tier = int(item.get('quality') or 0)
+            except (TypeError, ValueError):
+                tier = 0
+            if tier in (1, 2, 3):
+                return tier, 0, {1: '标清', 2: '高清', 3: '超清'}[tier] + '（源站档位）'
             path = urllib.parse.urlparse(item['videoUrl']).path.lower()
             for rank, token, label in ((3, 'shd', '超清'), (2, 'hd', '高清'), (1, 'sd', '标清')):
                 if re.search(r'(?:^|[/_.-])' + token + r'(?:[_.\-/]|$)', path):
@@ -462,14 +478,16 @@ class CourseClient:
             meta, best = max(ranked, key=lambda pair: pair[1].get('format') == 'mp4')
         return best['videoUrl'], best.get('format', 'hls'), meta[2]
 
-    def verify_identity(self):
-        import json
-        page = self._get_page(config.HOME_URL)
-        match = re.search(r'window\.webUser\s*=\s*({[^;]+})', page)
+    @staticmethod
+    def _page_user(page):
         try:
-            user = json.loads(match.group(1)) if match else {}
-        except (ValueError, AttributeError):
-            user = {}
+            user = parse_js_assignment(page, 'window.webUser')
+        except (DwrParseError, RecursionError):
+            return {}
+        return user if isinstance(user, dict) else {}
+
+    def verify_identity(self):
+        user = self._page_user(self._get_page(config.HOME_URL))
         if not user or not user.get('id'):
             raise LoginExpired('当前登录信息未通过验证，请重新登录')
         self.web_user_id = str(user['id'])
